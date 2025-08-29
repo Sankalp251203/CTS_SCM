@@ -174,6 +174,61 @@ with tab1:
     st.write("**Demand vs Production Comparison:**")
     st.dataframe(demand_comparison_df, use_container_width=True)
     
+        # --- Demand Forecast Line Graphs (per SKU and total) ---
+    st.subheader("Demand Forecast Trends (Line Graphs)")
+
+    # Optional series selector
+    series_options = ["North_Regular", "North_Diet", "South_Regular", "South_Diet", "Total_Demand"]
+    selected = st.multiselect(
+        "Select series to display",
+        options=series_options,
+        default=series_options
+    )
+
+    fig_lines = go.Figure()
+
+    # Add chosen demand series as lines
+    color_map = {
+        "North_Regular": "#4F9CEF",
+        "North_Diet": "#6CCB5F",
+        "South_Regular": "#F79D65",
+        "South_Diet": "#C56BE7",
+        "Total_Demand": "#D62728",
+    }
+
+    for col in selected:
+        fig_lines.add_trace(
+            go.Scatter(
+                x=demand["Week"],
+                y=demand[col],
+                mode="lines+markers",
+                name=col.replace("_", " "),
+                line=dict(width=3, color=color_map.get(col, None)),
+                marker=dict(size=6)
+            )
+        )
+
+    # Capacity reference line
+    fig_lines.add_hline(
+        y=capacity,
+        line_width=2,
+        line_dash="dash",
+        line_color="red",
+        annotation_text="Plant Capacity",
+        annotation_position="top right"
+    )
+
+    fig_lines.update_layout(
+        title="Weekly Demand Forecast Lines (with Capacity)",
+        xaxis_title="Week",
+        yaxis_title="Bottles",
+        legend_title="Series",
+        template="plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white",
+        hovermode="x unified"
+    )
+
+    st.plotly_chart(fig_lines, use_container_width=True)
+
     # Demand vs Production chart
     fig = go.Figure()
     fig.add_trace(go.Bar(name="Total Demand", x=demand["Week"], y=demand["Total_Demand"], opacity=0.7))
